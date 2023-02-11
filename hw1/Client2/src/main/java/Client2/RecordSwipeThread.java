@@ -11,7 +11,7 @@ import java.util.Random;
 
 public class RecordSwipeThread extends Thread {
 
-  private static final String SERVER_BASE_PATH = "http://localhost:8080/hw1_war_exploded/";
+  private static final String SERVER_BASE_PATH = "http://52.43.229.195:8080/Server_war/";
   private static final int MAX_IDLE_CONNECTION = 200;
   private static final long KEEP_ALIVE_DURATION_MS = 300000L;
   private static final int SWIPER_ID_UPPER_BOUND = 5000;
