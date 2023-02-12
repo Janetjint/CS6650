@@ -12,6 +12,7 @@ public class MonitorThread extends Thread {
   private int[] latencies;
   private int numOfRequests;
   private int counter;
+  private int lastProcessedRequests;
   private long start;
   private int secondsElapsed;
   private long totalResponseTime;
@@ -56,14 +57,23 @@ public class MonitorThread extends Thread {
   @Override
   public void run() {
     File recordFile = new File("./src/main/java/Client2/records.csv");
-    FileWriter fileWriter;
-    CSVWriter csvWriter;
+    FileWriter recordFileWriter;
+    CSVWriter recordCSVWriter;
     String[] headerIndividual = new String[]{"Start Time", "Request Type", "Latency", "Response Code"};
 
+
+    File throughputFile = new File("./src/main/java/Client2/throughput.csv");
+    FileWriter throughputFileWriter;
+    CSVWriter throughputCSVWriter;
+    String[] headerThroughput = new String[] {"Second", "Throughput"};
     try {
-      fileWriter = new FileWriter(recordFile);
-      csvWriter = new CSVWriter(fileWriter);
-      csvWriter.writeNext(headerIndividual);
+      recordFileWriter = new FileWriter(recordFile);
+      recordCSVWriter = new CSVWriter(recordFileWriter);
+      recordCSVWriter.writeNext(headerIndividual);
+
+      throughputFileWriter = new FileWriter(throughputFile);
+      throughputCSVWriter = new CSVWriter(throughputFileWriter);
+      throughputCSVWriter.writeNext(headerThroughput);
     } catch (IOException e) {
       e.printStackTrace();
       return;
@@ -71,6 +81,11 @@ public class MonitorThread extends Thread {
     while (counter < numOfRequests) {
       if ((System.currentTimeMillis() - start) / 1000 > secondsElapsed) {
         secondsElapsed++;
+        int temp = multiThreadedClient.getProcessedRequests();
+        int currProcessedRequests = temp - lastProcessedRequests;
+        lastProcessedRequests = temp;
+        String[] throughputData = new String[] {String.valueOf(secondsElapsed), String.valueOf(currProcessedRequests)};
+        throughputCSVWriter.writeNext(throughputData);
       }
 
       Record curr = multiThreadedClient.pullFromRecord();
@@ -87,12 +102,13 @@ public class MonitorThread extends Thread {
           curr.getRequestType(),
           String.valueOf(responseTime),
           String.valueOf(curr.getResponseCode())};
-      csvWriter.writeNext(data);
+      recordCSVWriter.writeNext(data);
       counter++;
     }
 
     try {
-      csvWriter.close();
+      recordCSVWriter.close();
+      throughputCSVWriter.close();
     } catch (IOException e) {
       e.printStackTrace();
     }
